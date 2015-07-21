@@ -1,45 +1,96 @@
-use ::sdl2::event::EventPump;
+macro_rules! struct_events {
+	(
+		keyboard: { $( $k_alias:ident : $k_sdl:ident ), *},
 
+		// match against a pattern
+		else: { $( $e_alias:ident : $e_sdl:pat ),* }
+	) => {
+		use ::sdl2::event::EventPump;
 
-// the lifetime 'p here makes sure
-// that no Events.pump references outlive 
-// what they depend on, ie. the EventPump.
-pub struct Events<'p> {
-	pump: EventPump<'p>,
-
-	pub quit: bool,
-	pub key_escape: bool,
-}
-
-impl<'p> Events<'p> {
-	pub fn new(pump: EventPump<'p>) -> Events<'p> {
-		Events {
-			pump: pump,
-
-			quit: false,
-			key_escape: false,
+		pub struct ImmediateEvents {
+			// For all keyboard events, we have an Option<bool>
+			// Some(true) => Was just pressed
+			// Some(false) => Was just released
+			// None => Nothing happening _now_
+			$( pub $k_alias: Option<bool> , )*
+			$( pub $e_alias: bool ),*
 		}
-	}
 
-	pub fn pump(&mut self) {
-		for event in self.pump.poll_iter() {
-			use ::sdl2::event::Event::*;
-			use ::sdl2::keyboard::Keycode::*;
+		impl ImmediateEvents {
+			pub fn new() -> ImmediateEvents {
+				ImmediateEvents {
+					// when reinitialized, nothing has yet happend,
+					// so all are set to None
+					$( $k_alias: None , )*
+					$( $e_alias: false ),*
+				}
+			}
+		}
 
-			match event {
-				Quit { .. } => self.quit = true,
+		pub struct Events<'p> {
+			pump: EventPump<'p>,
+			pub now: ImmediateEvents,
 
-				KeyDown { keycode, .. } => match keycode {
-					Some(Escape) => self.key_escape = true,
-					_ => {}
-				},
+			// true => pressed
+			// false => not pressed
+			$( pub $k_alias: bool ),*
+		}
 
-				KeyUp { keycode, .. } => match keycode {
-					Some(Escape) => self.key_escape = false,
-					_ => {}
-				},
+		impl<'p> Events<'p> {
+			pub fn new(pump: EventPump<'p>) -> Events<'p> {
+				Events {
+					pump: pump,
+					now: ImmediateEvents::new(),
 
-				_ => {}
+					// by default, init every key with _not pressed_
+					$( $k_alias: false ),*
+				}
+			}
+
+			pub fn pump(&mut self) {
+				self.now = ImmediateEvents::new();
+
+				for event in self.pump.poll_iter() {
+					use ::sdl2::event::Event::*;
+					use ::sdl2::keyboard::Keycode::*;
+
+					match event {
+						KeyDown { keycode, .. } => match keycode {
+							// $( ... ),* containing $k_sdl and $k_alias means:
+							// 'for every element ($k_alias : $k_sdl ) pair,
+							// check whether the keycode is Some($k_sdl). if
+							// it is, then set the $k_aliast fields to true.'
+							$(
+								Some($k_sdl) => {
+									// prevent multiple presses when keeping a key down
+									// was previously not pressed?
+									if !self.$k_alias {
+										// key pressed
+										self.now.$k_alias = Some(true);
+									}
+
+									self.$k_alias = true;
+								}
+							),*  // and add a comma after every option
+							_ => {}
+						},
+
+						KeyUp { keycode, .. } => match keycode {
+							$(
+								Some($k_sdl) => {
+									// key released
+									self.now.$k_alias = Some(false);
+									self.$k_alias = false;
+								}
+							),*
+							_ => {}
+						},
+
+						$( $e_sdl => { self.now.$e_alias = true; })*,
+
+						_ => {}
+					}
+				}
 			}
 		}
 	}
