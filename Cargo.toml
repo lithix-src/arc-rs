@@ -1,0 +1,7 @@
+[package]
+name = "arc-rs"
+version = "0.1.0"
+authors = ["Erik Blas <erik.blas@gmail.com>"]
+
+[dependencies]
+sdl2 = "0.5"
