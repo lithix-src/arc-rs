@@ -1,7 +1,8 @@
 extern crate sdl2;
+mod events;
+
 
 use sdl2::pixels::Color;
-use std::thread;
 
 
 fn main() {
@@ -13,7 +14,7 @@ fn main() {
 	// unwrap() because we just want the object,
 	// and if we can't get that value out of the Some()
 	// then we can't continue and should just puke
-	let sdl_context = sdl2::init().video()
+	let mut sdl_context = sdl2::init().video()
 		.build().unwrap();
 
 	let window = sdl_context.window("Arc RS", 800, 600)
@@ -24,12 +25,20 @@ fn main() {
 		.accelerated()
 		.build().unwrap();
 
-	// set brush color
-	renderer.set_draw_color(Color::RGB(0,0,30));
-	// clear the window screen
-	renderer.clear();
-	// draw to window screen
-	renderer.present();
+	let mut events = events::Events::new(sdl_context.event_pump());
 
-	thread::sleep_ms(3000);
+	loop {
+		events.pump();
+
+		if events.quit || events.key_escape {
+			break;
+		}
+
+		// set brush color
+		renderer.set_draw_color(Color::RGB(0,0,30));
+		// clear the window screen
+		renderer.clear();
+		// draw to window screen
+		renderer.present();
+	}
 }
