@@ -1,4 +1,4 @@
-macro_rules! struct_events {
+macro_rules! create_event_structs {
 	(
 		keyboard: { $( $k_alias:ident : $k_sdl:ident ), *},
 

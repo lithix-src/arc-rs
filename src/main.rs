@@ -9,7 +9,7 @@ extern crate sdl2;
 // we cannot call functions at top-level. however, `struct_events`
 // is a macro. which means that you can use a macro to do
 // pretty much anything _normal_ code would.
-struct_events!(
+create_event_structs!(
 	keyboard: {
 		key_escape: Escape,
 		key_up: Up,
@@ -44,6 +44,8 @@ fn main() {
 		.accelerated()
 		.build().unwrap();
 
+	// `Events` is one of the structs dynamically created at compile
+	// time by the create_event_structs! macro
 	let mut events = Events::new(sdl_context.event_pump());
 
 	'game_loop: loop {
