@@ -1,6 +1,6 @@
 macro_rules! create_event_structs {
 	(
-		keyboard: { $( $k_alias:ident : $k_sdl:ident ), *},
+		keyboard: { $( $k_alias:ident : $k_sdl:ident ),* },
 
 		// match against a pattern
 		else: { $( $e_alias:ident : $e_sdl:pat ),* }
