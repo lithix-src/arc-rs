@@ -5,9 +5,13 @@ mod phi;
 mod views;
 
 
-use sdl2::pixels::Color;
-use ::phi::Events;
+use ::phi::{Events, ViewAction};
+use ::sdl2::timer;
 
+
+const WINDOW_TITLE: &'static str = "Arc RS";
+static WINDOW_SIZE_X: u32 = 800;
+static WINDOW_SIZE_Y: u32 = 600;
 
 fn main() {
 	// init sdl2
@@ -18,33 +22,37 @@ fn main() {
 	// unwrap() because we just want the object,
 	// and if we can't get that value out of the Some()
 	// then we can't continue and should just puke
-	let mut sdl_context = sdl2::init().video()
+	let mut sdl_context = sdl2::init().timer().video()
 		.build().unwrap();
 
-	let window = sdl_context.window("Arc RS", 800, 600)
+	// TODO: get the window size from config db
+	let current_x_sz: &u32 = &WINDOW_SIZE_X;
+	let current_y_sz: &u32 = &WINDOW_SIZE_Y;
+	let window = sdl_context.window(WINDOW_TITLE, *current_x_sz, *current_y_sz)
 		.position_centered().opengl()
 		.build().unwrap();
 
-	let mut renderer = window.renderer()
-		.accelerated()
-		.build().unwrap();
+	// create context
+	let mut context = ::phi::Phi {
+		events: Events::new(sdl_context.event_pump()),
+		renderer: window.renderer()
+			.accelerated()
+			.build().unwrap(),
+	};
 
-	// `Events` is one of the structs dynamically created at compile
-	// time by the create_event_structs! macro
-	let mut events = Events::new(sdl_context.event_pump());
+	// create and show the default view
+	let mut current_view: Box<::phi::View> = Box::new(::views::DefaultView);
+	current_view.resume(&mut context);
 
 	'game_loop: loop {
-		events.pump();
+		context.events.pump();
 
-		if events.now.key_escape == Some(true) || events.now.quit == true {
-			break 'game_loop;
+		match current_view.render(&mut context, 0.01f64) {
+			ViewAction::None => context.renderer.present(),
+			ViewAction::Quit => {
+				current_view.pause(&mut context);
+				break 'game_loop;
+			},
 		}
-
-		// set brush color
-		renderer.set_draw_color(Color::RGB(0,0,30));
-		// clear the window screen
-		renderer.clear();
-		// draw to window screen
-		renderer.present();
 	}
 }

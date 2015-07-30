@@ -22,9 +22,9 @@ create_event_structs!(
 
 // bundles the Phi abstractions in a single structure
 // which can be passed easily beteen functions
-pub struct Phi<'p, 'r> {
-    pub events: Events<'p>,
-    pub renderer: Renderer<'r>,
+pub struct Phi<'a> {
+    pub events: Events<'a>,
+    pub renderer: Renderer<'a>,
 }
 
 // a `ViewAction` is a way for the executed view to
