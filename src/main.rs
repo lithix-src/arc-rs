@@ -5,7 +5,7 @@ mod phi;
 mod views;
 
 fn main() {
-	::phi::spawn("Arc-rs", |_| {
-		Box::new(::views::DefaultView)
+	::phi::spawn("Arc-rs", |phi| {
+		Box::new(::views::ShipView::new(phi))
 	});
 }

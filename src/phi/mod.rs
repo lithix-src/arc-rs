@@ -10,17 +10,19 @@ use ::sdl2::timer;
 #[macro_use] mod events;
 
 
-create_event_structs!(
+create_event_structs! {
 	keyboard: {
 		key_escape: Escape,
 		key_up: Up,
 		key_down: Down,
-		key_space: Space
+		key_space: Space,
+		key_right: Right,
+		key_left: Left
 	},
 	else: {
 		quit: Quit { .. }
 	}
-);
+}
 
 // bundles the Phi abstractions in a single structure
 // which can be passed easily beteen functions
