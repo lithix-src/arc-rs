@@ -1,13 +1,11 @@
 use ::phi::{Phi, View, ViewAction};
 use ::sdl2::pixels::Color;
-mod viewa;
-mod viewb;
 
+use ::views::viewa;
 
-pub struct DefaultView;
+pub struct ViewB;
 
-
-impl View for DefaultView {
+impl View for ViewB {
 	fn render(&mut self, context: &mut Phi, _: f64) -> ViewAction {
 		let renderer = &mut context.renderer;
 		let events = &context.events;
@@ -20,7 +18,7 @@ impl View for DefaultView {
 			return ViewAction::ChangeView(Box::new(viewa::ViewA));
 		}
 
-		renderer.set_draw_color(Color::RGB(0, 0, 0));
+		renderer.set_draw_color(Color::RGB(0, 0, 255));
 		renderer.clear();
 
 		ViewAction::None
