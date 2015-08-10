@@ -7,7 +7,10 @@ use ::sdl2::timer;
 // in the `events` module. needed because macros cannot be namespaced
 // as macro expansion happens before concept of namespace even starts
 // to _exist_ in the compilation timeline.
-#[macro_use] mod events;
+#[macro_use]
+mod events;
+
+pub mod data;
 
 
 create_event_structs! {
@@ -29,6 +32,12 @@ create_event_structs! {
 pub struct Phi<'a> {
     pub events: Events<'a>,
     pub renderer: Renderer<'a>,
+}
+
+impl<'a> Phi<'a> {
+	pub fn output_size(&self) -> (u32, u32) {
+		self.renderer.get_output_size().unwrap()
+	}
 }
 
 // a `ViewAction` is a way for the executed view to
@@ -64,7 +73,7 @@ where F: Fn(&mut Phi) -> Box<View> {
 		.build().unwrap();
 
 	let window = sdl_context.window(title, 800, 600)
-		.position_centered().opengl()
+		.position_centered().opengl().resizable()
 		.build().unwrap();
 
 	let mut context = Phi {
@@ -105,7 +114,7 @@ where F: Fn(&mut Phi) -> Box<View> {
 		}
 
 		// logic & rendering
-		context.events.pump();
+		context.events.pump(&mut context.renderer);
 
 		match current_view.render(&mut context, elapsed) {
 			ViewAction::None => context.renderer.present(),

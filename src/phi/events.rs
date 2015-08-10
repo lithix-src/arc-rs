@@ -14,6 +14,7 @@ macro_rules! create_event_structs {
 			// Some(true) => Was just pressed
 			// Some(false) => Was just released
 			// None => Nothing happening _now_
+			resize: Option<(u32, u32)>,
 			$( pub $k_alias: Option<bool> , )*
 			$( pub $e_alias: bool ),*
 		}
@@ -23,6 +24,7 @@ macro_rules! create_event_structs {
 				ImmediateEvents {
 					// when reinitialized, nothing has yet happend,
 					// so all are set to None
+					resize: None,
 					$( $k_alias: None , )*
 					$( $e_alias: false ),*
 				}
@@ -49,7 +51,7 @@ macro_rules! create_event_structs {
 				}
 			}
 
-			pub fn pump(&mut self) {
+			pub fn pump(&mut self, renderer: &mut ::sdl2::render::Renderer) {
 				self.now = ImmediateEvents::new();
 
 				for event in self.pump.poll_iter() {
@@ -57,6 +59,10 @@ macro_rules! create_event_structs {
 					use ::sdl2::keyboard::Keycode::*;
 
 					match event {
+						Window { win_event_id: Resized, .. } => {
+							self.now.resize = Some(renderer.get_output_size().unwrap());
+						},
+
 						KeyDown { keycode, .. } => match keycode {
 							// $( ... ),* containing $k_sdl and $k_alias means:
 							// 'for every element ($k_alias : $k_sdl ) pair,
